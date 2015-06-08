@@ -4,6 +4,7 @@ import org.json.JSONObject;
 
 import com.avos.avoscloud.AVOSCloud;
 
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -16,7 +17,9 @@ public class AVOSBroadcastReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         try {
-            if (intent.getAction().equals("com.plugin.avos.UPDATE_STATUS")) {
+            String packageName = AVOSCloud.applicationContext.getPackageName();
+
+            if (intent.getAction().equals(packageName + ".UPDATE_STATUS")) {
                 JSONObject json = new JSONObject(intent.getExtras().getString("com.avos.avoscloud.Data"));
 
                 // if we are in the foreground, just surface the payload, else post it to the statusbar
@@ -27,7 +30,6 @@ public class AVOSBroadcastReceiver extends BroadcastReceiver {
                     json.put("foreground", false);
                     final String message = json.getString("alert");
                     Class<?> c = null;
-                    String packageName = AVOSCloud.applicationContext.getPackageName();
                     c = Class.forName(packageName + ".MainActivity");
                     Intent resultIntent = new Intent(AVOSCloud.applicationContext, c);
                     PendingIntent pendingIntent =
@@ -39,6 +41,7 @@ public class AVOSBroadcastReceiver extends BroadcastReceiver {
                                     .setContentTitle(context.getString(AVOSCloud.applicationContext.getApplicationInfo().labelRes))
                                     .setContentText(message)
                                     .setTicker(message);
+                    mBuilder.setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE);
                     mBuilder.setContentIntent(pendingIntent);
                     mBuilder.setAutoCancel(true);
 
