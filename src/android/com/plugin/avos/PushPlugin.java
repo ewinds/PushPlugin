@@ -30,7 +30,6 @@ public class PushPlugin extends CordovaPlugin {
 
     private static CordovaWebView gWebView;
     private static String gECB;
-    private static String gSenderID;
     private static String gDeviceID;
     private static Bundle gCachedExtras = null;
     private static boolean gForeground = false;
@@ -62,10 +61,7 @@ public class PushPlugin extends CordovaPlugin {
                 Log.v(TAG, "execute: jo=" + jo.toString());
 
                 gECB = (String) jo.get("ecb");
-                gSenderID = (String) jo.get("senderID");
                 gDeviceID = AVInstallation.getCurrentInstallation().getInstallationId();
-
-                Log.v(TAG, "execute: ECB=" + gECB + " senderID=" + gSenderID);
 
                 result = true;
                 callbackContext.success(gDeviceID);
