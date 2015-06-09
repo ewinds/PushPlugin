@@ -12,6 +12,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 
+import java.util.Random;
+
 public class AVOSBroadcastReceiver extends BroadcastReceiver {
 
     @Override
@@ -25,15 +27,19 @@ public class AVOSBroadcastReceiver extends BroadcastReceiver {
                 // if we are in the foreground, just surface the payload, else post it to the statusbar
                 if (PushPlugin.isInForeground()) {
                     json.put("foreground", true);
+                    // Send this JSON data to the JavaScript application above EVENT should be set to the msg type
+                    // In this case this is the registration ID
+                    PushPlugin.sendJavascript(json);
                 }
                 else {
                     json.put("foreground", false);
                     final String message = json.getString("alert");
-                    Class<?> c = null;
-                    c = Class.forName(packageName + ".MainActivity");
-                    Intent resultIntent = new Intent(AVOSCloud.applicationContext, c);
+                    Intent notificationIntent = new Intent(AVOSCloud.applicationContext, PushHandlerActivity.class);
+                    notificationIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    notificationIntent.putExtra("pushBundle", intent.getExtras());
+
                     PendingIntent pendingIntent =
-                            PendingIntent.getActivity(AVOSCloud.applicationContext, 0, resultIntent,
+                            PendingIntent.getActivity(AVOSCloud.applicationContext, 0, notificationIntent,
                                     PendingIntent.FLAG_UPDATE_CURRENT);
                     NotificationCompat.Builder mBuilder =
                             new NotificationCompat.Builder(AVOSCloud.applicationContext)
@@ -45,17 +51,13 @@ public class AVOSBroadcastReceiver extends BroadcastReceiver {
                     mBuilder.setContentIntent(pendingIntent);
                     mBuilder.setAutoCancel(true);
 
-                    int mNotificationId = 10086;
+                    int mNotificationId = (new Random()).nextInt(500) + 1;
                     NotificationManager mNotifyMgr =
                             (NotificationManager) AVOSCloud.applicationContext
                                     .getSystemService(
                                             Context.NOTIFICATION_SERVICE);
                     mNotifyMgr.notify(mNotificationId, mBuilder.build());
                 }
-
-                // Send this JSON data to the JavaScript application above EVENT should be set to the msg type
-                // In this case this is the registration ID
-                PushPlugin.sendJavascript(json);
             }
         } catch (Exception e) {
 
